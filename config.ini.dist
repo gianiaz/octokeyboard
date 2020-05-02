@@ -1,0 +1,5 @@
+[OCTOPRINT]
+
+api_key = "Your generated api key from settings in octoprint web interface"
+
+
