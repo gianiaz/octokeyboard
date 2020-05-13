@@ -1,5 +1,10 @@
 [OCTOPRINT]
 
-api_key = "Your generated api key from settings in octoprint web interface"
+api_key = your secret api key 
 
+[PRINTER]
 
+bed_temperature = 45
+nozzle_temperature = 200
+poweron_script = /path/to/your-power-on-script.sh
+poweroff_script = /path/to/your-power-on-script.sh
