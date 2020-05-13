@@ -21,6 +21,12 @@ class Config(ConfigParser):
         required_values = {
             'OCTOPRINT': {
                 'apikey': None,
+            },
+            'PRINTER': {
+                'bed_temperature': None,
+                'nozzle_temperature': None,
+                'poweron_script': None,
+                'poweroff_script': None,
             }
         }
         """
