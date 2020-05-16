@@ -27,6 +27,8 @@ class Config(ConfigParser):
                 'nozzle_temperature': None,
                 'poweron_script': None,
                 'poweroff_script': None,
+                'stepper_step': None,
+                'extrude_lenght': None,
             }
         }
         """

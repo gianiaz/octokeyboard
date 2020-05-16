@@ -1,5 +1,5 @@
 """
-Si occupa di dialogare con octoprint
+Api module for talking with octoprint
 """
 
 import requests
@@ -20,7 +20,7 @@ from threading import Timer
 
 class OctoprintApi():
     """
-    Classe di interfaccia con le api di octoprint
+    Main class
     """
 
     def __init__(self, debug: bool = True):
@@ -31,6 +31,8 @@ class OctoprintApi():
         self.base_url = "http://localhost/api/"
         self.power_off_command = CONFIG['PRINTER']['poweroff_script']
         self.power_on_command = CONFIG['PRINTER']['poweron_script']
+        self.stepper_step = CONFIG['PRINTER']['stepper_step']
+        self.extrude_lenght = CONFIG['PRINTER']['extrude_lenght']
         self.last_heart_beat = None
         self.debug = debug
         self.conneted = self.is_connected()
@@ -55,31 +57,31 @@ class OctoprintApi():
         return self.is_connected()
 
     def right(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 X10 F6000', 'G90']})
+        self.__postCommand({'commands': ['G91', 'G1 X%s F6000' % self.stepper_step, 'G90']})
 
     def left(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 X-10 F6000', 'G90']})
+        self.__postCommand({'commands': ['G91', 'G1 X-%s F6000' % self.stepper_step, 'G90']})
 
     def backward(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 Y10 F6000', 'G90']})
+        self.__postCommand({'commands': ['G91', 'G1 Y%s F6000' % self.stepper_step, 'G90']})
 
     def forward(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 Y-10 F6000', 'G90']})
+        self.__postCommand({'commands': ['G91', 'G1 Y-%s F6000' % self.stepper_step, 'G90']})
 
     def up(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 Z10 F200', 'G90']})
+        self.__postCommand({'commands': ['G91', 'G1 Z%s F200' % self.stepper_step, 'G90']})
 
     def down(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 Z-10 F200', 'G90']})
+        self.__postCommand({'commands': ['G91', 'G1 Z-%s F200' % self.stepper_step, 'G90']})
 
     def homez(self) -> None:
         self.__postCommand({'commands': ['G91', 'G28 Z0', 'G90']})
 
     def extrude(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 E50 F300', 'G90']})
+        self.__postCommand({'commands': ['G91', 'G1 E%s F300' % self.extrude_lenght, 'G90']})
 
     def retract(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 E-50 F300', 'G90']})
+        self.__postCommand({'commands': ['G91', 'G1 E-%s F300' % self.extrude_lenght, 'G90']})
 
     def heat_nozzle(self) -> None:
         self.__postCommand({'command': 'M104 S'+self.nozzle_temperature})
@@ -92,7 +94,7 @@ class OctoprintApi():
         responseData = self.__get(url)
         if responseData is None:
             if self.debug:
-                print('Non connesso')
+                print('Not connected')
             print('Busy: False')
             return False
         busy = responseData["state"]["flags"]["printing"] or responseData["state"][
@@ -130,7 +132,7 @@ class OctoprintApi():
 
     def __get(self, url: str = None) -> json:
         if self.debug:
-            print('Url richiesto: %s' % url)
+            print('Requested url: %s' % url)
         if self.is_connected() == False:
             self.connect()
         if self.is_connected() == True:
@@ -158,7 +160,7 @@ class OctoprintApi():
                     print(response.text)
             else:
                 if self.debug:
-                    print('Stampante impegnata in altra operazione')
+                    print('Printer busy doing is job')
 
     def __build_url(self, base: str, command: str = None, additional_params: str = None) -> str:
         url = base

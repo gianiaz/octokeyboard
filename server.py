@@ -7,21 +7,10 @@ from config import Config
 from octoprint_api import OctoprintApi
 
 CONFIG = Config('config.ini')
-
 api_key = ""
-
 api = OctoprintApi();
-
-
-def is_busy() -> bool:
-    response = requests.get(
-        "http://localhost/api/printer?apikey=B713F275B2B74CD5BA92C07F40101649&exclude=temperature,sd")
-    responseData = str(response.text)
-    state = json.loads(responseData)
-    return state["state"]["flags"]["printing"] or state["state"]["flags"]["pausing"] or state["state"]["flags"]["finishing"]
-
-
 serialPort = serial.Serial("/dev/ttyUSB0", 9600, timeout=0.5)
+
 try:
     while True:
         cmd = serialPort.readline()
