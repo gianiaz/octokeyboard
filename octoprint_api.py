@@ -25,7 +25,7 @@ class OctoprintApi():
 
     def __init__(self, debug: bool = True):
         CONFIG = Config('config.ini')
-        self.apikey = CONFIG['OCTOPRINT']['api_key']
+        self.apikey = CONFIG['OCTOPRINT']['apikey']
         self.nozzle_temperature = CONFIG['PRINTER']['nozzle_temperature']
         self.bed_temperature = CONFIG['PRINTER']['bed_temperature']
         self.base_url = "http://localhost/api/"
@@ -33,10 +33,10 @@ class OctoprintApi():
         self.power_on_command = CONFIG['PRINTER']['poweron_script']
         self.last_heart_beat = None
         self.debug = debug
-        self.connected = self.is_connected()
+        self.conneted = self.is_connected()
 
     def homexy(self) -> None:
-        self.__postCommand({'command': 'G28'})
+        self.__postCommand({'command': 'G28 XY'})
 
     def disable_stepper(self) -> None:
         self.__postCommand({'command': 'M18'})
@@ -81,10 +81,10 @@ class OctoprintApi():
     def retract(self) -> None:
         self.__postCommand({'commands': ['G91', 'G1 E-50 F300', 'G90']})
 
-    def preheat_nozzle(self) -> None:
+    def heat_nozzle(self) -> None:
         self.__postCommand({'command': 'M104 S'+self.nozzle_temperature})
 
-    def preheat_bed(self) -> None:
+    def heat_bed(self) -> None:
         self.__postCommand({'command': 'M140 S'+self.bed_temperature})
 
     def is_busy(self) -> bool:
@@ -123,8 +123,10 @@ class OctoprintApi():
             "port": "/dev/ttyACM0",
             "baudrate": 115200
         }
-        requests.post(url, json=jsonData, headers={
+        response = requests.post(url, json=jsonData, headers={
             'X-Api-Key': self.apikey})
+        if self.debug:
+            print('Connection result: %d ' % response.status_code)            
 
     def __get(self, url: str = None) -> json:
         if self.debug:
@@ -141,6 +143,8 @@ class OctoprintApi():
 
     def __postCommand(self, jsonData=None) -> None:
         if self.is_connected() == False:
+            if self.debug is True:
+                print('Not connected, trying to connect')
             self.connect()
         if self.is_connected() == True:
             url = self.__build_printer_url('command')

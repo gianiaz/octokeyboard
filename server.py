@@ -4,10 +4,13 @@ import requests
 import json
 import sys
 from config import Config
+from octoprint_api import OctoprintApi
 
 CONFIG = Config('config.ini')
 
 api_key = ""
+
+api = OctoprintApi();
 
 
 def is_busy() -> bool:
@@ -22,8 +25,36 @@ serialPort = serial.Serial("/dev/ttyUSB0", 9600, timeout=0.5)
 while True:
     line = serialPort.readline()
     line = line.decode('utf-8').strip()
+    if line is not "":
+        print(line)
+    if line == "POWER":
+        if api.isOn():
+            api.power_off()
+        else:
+            api.power_on() 
+    if line == "DISABLE_STEPPER":
+        api.disable_stepper()
+    if line == "LEFT":
+        api.left()
+    if line == "FORWARD":
+        api.forward()        
     if line == "HOME":
-        data = {'command': 'G28'}
-        url = "http://localhost/api/printer/command?apikey=B713F275B2B74CD5BA92C07F40101649"
-        response = requests.post(url, json=data)
-        print(response.status_code)
+        api.homexy()
+    if line == "BACKWARD":
+        api.backward()        
+    if line == "RIGHT":
+        api.right()        
+    if line == "UP":
+        api.up()        
+    if line == "HOMEZ":
+        api.homez()        
+    if line == "DOWN":
+        api.down()        
+    if line == "EXTRUDE":
+        api.extrude()        
+    if line == "RETRACT":
+        api.retract()        
+    if line == "HEATNOZZLE":
+        api.heat_nozzle()        
+    if line == "HEATPLATE":
+        api.heat_bed()        
