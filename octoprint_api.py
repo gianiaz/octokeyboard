@@ -10,6 +10,8 @@ import time
 import logging
 import http.client as http_client
 from threading import Timer
+import os
+
 # http_client.HTTPConnection.debuglevel = 1
 # logging.basicConfig()
 # logging.getLogger().setLevel(logging.DEBUG)
@@ -24,7 +26,7 @@ class OctoprintApi():
     """
 
     def __init__(self, debug: bool = True):
-        CONFIG = Config('config.ini')
+        CONFIG = Config(os.path.dirname(__file__) + '/config.ini')
         self.apikey = CONFIG['OCTOPRINT']['apikey']
         self.nozzle_temperature = CONFIG['PRINTER']['nozzle_temperature']
         self.bed_temperature = CONFIG['PRINTER']['bed_temperature']
@@ -57,31 +59,39 @@ class OctoprintApi():
         return self.is_connected()
 
     def right(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 X%s F6000' % self.stepper_step, 'G90']})
+        self.__postCommand(
+            {'commands': ['G91', 'G1 X%s F6000' % self.stepper_step, 'G90']})
 
     def left(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 X-%s F6000' % self.stepper_step, 'G90']})
+        self.__postCommand(
+            {'commands': ['G91', 'G1 X-%s F6000' % self.stepper_step, 'G90']})
 
     def backward(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 Y%s F6000' % self.stepper_step, 'G90']})
+        self.__postCommand(
+            {'commands': ['G91', 'G1 Y%s F6000' % self.stepper_step, 'G90']})
 
     def forward(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 Y-%s F6000' % self.stepper_step, 'G90']})
+        self.__postCommand(
+            {'commands': ['G91', 'G1 Y-%s F6000' % self.stepper_step, 'G90']})
 
     def up(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 Z%s F200' % self.stepper_step, 'G90']})
+        self.__postCommand(
+            {'commands': ['G91', 'G1 Z%s F200' % self.stepper_step, 'G90']})
 
     def down(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 Z-%s F200' % self.stepper_step, 'G90']})
+        self.__postCommand(
+            {'commands': ['G91', 'G1 Z-%s F200' % self.stepper_step, 'G90']})
 
     def homez(self) -> None:
         self.__postCommand({'commands': ['G91', 'G28 Z0', 'G90']})
 
     def extrude(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 E%s F300' % self.extrude_lenght, 'G90']})
+        self.__postCommand(
+            {'commands': ['G91', 'G1 E%s F300' % self.extrude_lenght, 'G90']})
 
     def retract(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G1 E-%s F300' % self.extrude_lenght, 'G90']})
+        self.__postCommand(
+            {'commands': ['G91', 'G1 E-%s F300' % self.extrude_lenght, 'G90']})
 
     def heat_nozzle(self) -> None:
         self.__postCommand({'command': 'M104 S'+self.nozzle_temperature})
@@ -128,7 +138,7 @@ class OctoprintApi():
         response = requests.post(url, json=jsonData, headers={
             'X-Api-Key': self.apikey})
         if self.debug:
-            print('Connection result: %d ' % response.status_code)            
+            print('Connection result: %d ' % response.status_code)
 
     def __get(self, url: str = None) -> json:
         if self.debug:

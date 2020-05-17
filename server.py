@@ -5,10 +5,11 @@ import json
 import sys
 from config import Config
 from octoprint_api import OctoprintApi
+import os
 
-CONFIG = Config('config.ini')
+CONFIG = Config(os.path.dirname(__file__) + '/config.ini')
 api_key = ""
-api = OctoprintApi();
+api = OctoprintApi()
 serialPort = serial.Serial("/dev/ttyUSB0", 9600, timeout=0.5)
 
 try:
@@ -21,33 +22,33 @@ try:
             if api.isOn():
                 api.power_off()
             else:
-                api.power_on() 
+                api.power_on()
         if cmd == "DISABLE_STEPPER":
             api.disable_stepper()
         if cmd == "LEFT":
             api.left()
         if cmd == "FORWARD":
-            api.forward()        
+            api.forward()
         if cmd == "HOME":
             api.homexy()
         if cmd == "BACKWARD":
-            api.backward()        
+            api.backward()
         if cmd == "RIGHT":
-            api.right()        
+            api.right()
         if cmd == "UP":
-            api.up()        
+            api.up()
         if cmd == "HOMEZ":
-            api.homez()        
+            api.homez()
         if cmd == "DOWN":
-            api.down()        
+            api.down()
         if cmd == "EXTRUDE":
-            api.extrude()        
+            api.extrude()
         if cmd == "RETRACT":
-            api.retract()        
+            api.retract()
         if cmd == "HEATNOZZLE":
-            api.heat_nozzle()        
+            api.heat_nozzle()
         if cmd == "HEATPLATE":
-            api.heat_bed()        
+            api.heat_bed()
 except KeyboardInterrupt:
     print('Good bye :-)')
     sys.exit(0)

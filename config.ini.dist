@@ -1,6 +1,6 @@
 [OCTOPRINT]
 
-api_key = your secret api key 
+apikey = your secret api key 
 
 [PRINTER]
 
@@ -8,3 +8,5 @@ bed_temperature = 45
 nozzle_temperature = 200
 poweron_script = /path/to/your-power-on-script.sh
 poweroff_script = /path/to/your-power-on-script.sh
+stepper_step = 30
+extrude_lenght = 30
