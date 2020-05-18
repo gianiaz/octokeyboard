@@ -21,6 +21,7 @@ class Config(ConfigParser):
         required_values = {
             'OCTOPRINT': {
                 'apikey': None,
+                'host': None,
             },
             'PRINTER': {
                 'bed_temperature': None,

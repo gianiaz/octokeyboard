@@ -1,6 +1,7 @@
 [OCTOPRINT]
 
 apikey = your secret api key 
+host = http://localhost
 
 [PRINTER]
 

@@ -7,6 +7,7 @@ import json
 from config import Config
 import subprocess
 import time
+import urllib3
 import logging
 import http.client as http_client
 from threading import Timer
@@ -30,7 +31,7 @@ class OctoprintApi():
         self.apikey = CONFIG['OCTOPRINT']['apikey']
         self.nozzle_temperature = CONFIG['PRINTER']['nozzle_temperature']
         self.bed_temperature = CONFIG['PRINTER']['bed_temperature']
-        self.base_url = "http://localhost/api/"
+        self.base_url = CONFIG['OCTOPRINT']['host'] + "/api/"
         self.power_off_command = CONFIG['PRINTER']['poweroff_script']
         self.power_on_command = CONFIG['PRINTER']['poweron_script']
         self.stepper_step = CONFIG['PRINTER']['stepper_step']
@@ -40,10 +41,10 @@ class OctoprintApi():
         self.conneted = self.is_connected()
 
     def homexy(self) -> None:
-        self.__postCommand({'command': 'G28 XY'})
+        self.__postCommand({'commands': ['M300 S200 P80', 'G28 XY']})
 
     def disable_stepper(self) -> None:
-        self.__postCommand({'command': 'M18'})
+        self.__postCommand({'commands': ['M300 S200 P80', 'M18']})
 
     def power_on(self) -> None:
         if self.is_busy() == False:
@@ -60,44 +61,47 @@ class OctoprintApi():
 
     def right(self) -> None:
         self.__postCommand(
-            {'commands': ['G91', 'G1 X%s F6000' % self.stepper_step, 'G90']})
+            {'commands': ['M300 S200 P80', 'G91', 'G1 X%s F6000' % self.stepper_step, 'G90']})
 
     def left(self) -> None:
         self.__postCommand(
-            {'commands': ['G91', 'G1 X-%s F6000' % self.stepper_step, 'G90']})
+            {'commands': ['M300 S200 P80', 'G91', 'G1 X-%s F6000' % self.stepper_step, 'G90']})
 
     def backward(self) -> None:
         self.__postCommand(
-            {'commands': ['G91', 'G1 Y%s F6000' % self.stepper_step, 'G90']})
+            {'commands': ['M300 S200 P80', 'G91', 'G1 Y%s F6000' % self.stepper_step, 'G90']})
 
     def forward(self) -> None:
         self.__postCommand(
-            {'commands': ['G91', 'G1 Y-%s F6000' % self.stepper_step, 'G90']})
+            {'commands': ['M300 S200 P80', 'G91', 'G1 Y-%s F6000' % self.stepper_step, 'G90']})
 
     def up(self) -> None:
         self.__postCommand(
-            {'commands': ['G91', 'G1 Z%s F200' % self.stepper_step, 'G90']})
+            {'commands': ['M300 S200 P80', 'G91', 'G1 Z%s F200' % self.stepper_step, 'G90']})
 
     def down(self) -> None:
         self.__postCommand(
-            {'commands': ['G91', 'G1 Z-%s F200' % self.stepper_step, 'G90']})
+            {'commands': ['M300 S200 P80', 'G91', 'G1 Z-%s F200' % self.stepper_step, 'G90']})
 
     def homez(self) -> None:
-        self.__postCommand({'commands': ['G91', 'G28 Z0', 'G90']})
+        self.__postCommand(
+            {'commands': ['M300 S200 P80', 'G91', 'G28 Z0', 'G90']})
 
     def extrude(self) -> None:
         self.__postCommand(
-            {'commands': ['G91', 'G1 E%s F300' % self.extrude_lenght, 'G90']})
+            {'commands': ['M300 S200 P80', 'G91', 'G1 E%s F300' % self.extrude_lenght, 'G90']})
 
     def retract(self) -> None:
         self.__postCommand(
-            {'commands': ['G91', 'G1 E-%s F300' % self.extrude_lenght, 'G90']})
+            {'commands': ['M300 S200 P80', 'G91', 'G1 E-%s F300' % self.extrude_lenght, 'G90']})
 
     def heat_nozzle(self) -> None:
-        self.__postCommand({'command': 'M104 S'+self.nozzle_temperature})
+        self.__postCommand(
+            {'commands': ['M300 S200 P80', 'M104 S'+self.nozzle_temperature]})
 
     def heat_bed(self) -> None:
-        self.__postCommand({'command': 'M140 S'+self.bed_temperature})
+        self.__postCommand(
+            {'commands': ['M300 S200 P80', 'M140 S'+self.bed_temperature]})
 
     def is_busy(self) -> bool:
         url = self.__build_printer_url(None, 'exclude=temperature,sd')
@@ -115,16 +119,20 @@ class OctoprintApi():
 
     def is_connected(self) -> bool:
         url = self.__build_url(self.base_url + 'connection')
-        response = requests.get(url, headers={'X-Api-Key': self.apikey})
-        self.last_heart_beat = time.time()
-        is_connected = False
-        if response is not None:
-            responseText = str(response.text)
-            responseData = json.loads(responseText)
-            is_connected = responseData['current']['state'] != "Closed"
+        try:
+            response = requests.get(url, headers={'X-Api-Key': self.apikey})
+            self.last_heart_beat = time.time()
+            is_connected = False
+            if response is not None and response.text is not "":
+                responseText = str(response.text)
+                responseData = json.loads(responseText)
+                is_connected = responseData['current']['state'] != "Closed"
 
-        if self.debug:
-            print("Connected: " + str(is_connected))
+            if self.debug:
+                print("Connected: " + str(is_connected))
+        except Exception:
+            print('Wrong host or webserver non listening..')
+            is_connected = False
 
         return is_connected
 
@@ -141,17 +149,24 @@ class OctoprintApi():
             print('Connection result: %d ' % response.status_code)
 
     def __get(self, url: str = None) -> json:
-        if self.debug:
-            print('Requested url: %s' % url)
-        if self.is_connected() == False:
-            self.connect()
-        if self.is_connected() == True:
-            response = requests.get(url, headers={'X-Api-Key': self.apikey})
-            responseData = str(response.text)
-            return json.loads(responseData)
-        else:
-            print("WARNING - NOT CONNECTED")
-            return None
+        try:
+            if self.debug:
+                print('Requested url: %s' % url)
+            if self.is_connected() == False:
+                self.connect()
+            if self.is_connected() == True:
+                response = requests.get(
+                    url, headers={'X-Api-Key': self.apikey})
+                responseData = str(response.text)
+                try:
+                    return json.loads(responseData)
+                except Exception:
+                    return None
+            else:
+                print("WARNING - NOT CONNECTED")
+                return None
+        except (requests.exceptions.RequestException, urllib3.exceptions.NewConnectionError) as e:
+            print("Something gone wrong")
 
     def __postCommand(self, jsonData=None) -> None:
         if self.is_connected() == False:
