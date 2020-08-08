@@ -8,9 +8,11 @@ from octoprint_api import OctoprintApi
 import os
 
 CONFIG = Config(os.path.dirname(__file__) + '/config.ini')
+
 api_key = ""
 api = OctoprintApi()
-serialPort = serial.Serial("/dev/ttyUSB0", 9600, timeout=0.5)
+
+serialPort = serial.Serial(CONFIG['OCTOPRINT']['serialPort'], 9600, timeout=0.5)
 
 try:
     while True:

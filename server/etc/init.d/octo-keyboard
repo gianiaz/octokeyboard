@@ -1,0 +1,28 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: Start octokeyboard
+# Description: Octokeyboard
+### END INIT INFO
+
+# Do NOT change anything below this line unless you know what you are doing!
+
+exec 1>/var/log/octo-keyboard.service.log 2>&1
+
+case "$1" in
+start)
+echo "Starting octo-keyboard server"
+/home/pi/ender3/keyboard/server.py &
+;;
+stop)
+echo "Closing connection to serial port for octo-keyboard"
+sudo pkill -f server.py
+;;
+*)
+echo "Usage: /etc/init.d/octo-keyboard {start|stop}"
+exit 1
+;;
+esac
+

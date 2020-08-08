@@ -2,6 +2,7 @@
 
 apikey = your secret api key 
 host = http://localhost
+serialPort = /dev/ttyUSB0
 
 [PRINTER]
 
