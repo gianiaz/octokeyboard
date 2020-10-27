@@ -1,6 +1,6 @@
 certifi==2020.4.5.1
 chardet==3.0.4
-cryptography==1.7.1
+cryptography==3.2
 future==0.18.2
 idna==2.9
 iso8601==0.1.12
